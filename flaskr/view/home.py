@@ -9,15 +9,19 @@ print('aa')
 mysql = MySQL()
 mysql.init_app(app)
 
-@app.route('/add', methods=['POST'])
+@app.route('/', methods=['GET'])
+def homepage():
+    return render_template('home.html')
+
+@app.route('/add', methods=['GET','POST'])
 def add():
     if(request.method == 'POST'):
         conn = mysql.connect()
         cursor = conn.cursor()
         data = request.json
-        sql_command = """insert into `xisitan`.`todolist` (`create_time`, `status`, `title`, `user_id`) values ({}, {}, '{}', {})
-        """.format(data['create_time'],data['status'],data['title'],123)
-        cursor.execute(sql_command)
+        
+        cursor.execute("insert into `todolist` (`create_time`, `status`, `title`, `user_id`) values (%s, %s, %s, %s)" , (data['create_time'],data['status'],data['title'],123))
+        
         response ={            
             'code': 200,
             'message': "success hardcode",
