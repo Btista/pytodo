@@ -3,65 +3,43 @@ import sys
 sys.path.append("..")
 from flaskr import app
 from flaskr.models.base import database, todoModel
-import json
-import requests
+from flaskr.api.common import RESTful
+from flask_restful import Resource,Api
 # from flaskext.mysql import MySQL
 # mysql = MySQL()
 # mysql.init_app(app)
 
-@app.route('/list', methods=['GET'])
-def getList():
-    if(request.method == "GET"):
+api=Api(app)
+
+class getList(Resource):
+    def get(self):
         list = todoModel.select().limit(1000).dicts()
         list = [item for item in list]
-        response ={            
-            'code': 200,
-            'message': "success hardcode",
-            'data':list
-        }
-        response_body = make_response(jsonify(response),200)
-        return response_body
+        return RESTful.response(code=200, data=list)
 
-@app.route('/add', methods=['POST'])
-def add():
-    if(request.method == 'POST'):
+class add(Resource):
+    def post(self):
         data = request.json
-        print(request.json)
         list = todoModel.create(name=data['name'], event=data['event'], begin_time= data['begin_time'], if_done=data['if_done'])
         list.save()    
-        response ={            
-            'code': 200,
-            'message': "success hardcode",
-            'data': request.json
-        }
-        response_body = make_response(jsonify(response),200)
-        return response_body
+        return RESTful.response(code=200, data=data)
 
-@app.route('/delete', methods=['POST'])
-def delete():
-    if(request.method == 'POST'):
+class delete(Resource):
+    def post(self):
         data = request.json
         id = data['id']
         item_for_delete = todoModel.get(todoModel.id==id)
         item_for_delete.delete_instance()
-        response ={            
-            'code': 200,
-            'message': "success hardcode",
-            'data': request.json
-        }
-        response_body = make_response(jsonify(response),200)
-        return response_body
+        return RESTful.response(code=200, data=data)
 
-@app.route('/update', methods=['POST'])
-def update():
-    if(request.method == 'POST'):
+class update(Resource):
+    def post(self):
         data = request.json
         query = todoModel.update(name=data['name'], event=data['event'], begin_time= data['begin_time'], if_done=data['if_done']).where(todoModel.id == data['id'])
         query.execute()
-        response ={            
-            'code': 200,
-            'message': "success hardcode",
-            'data': request.json
-        }
-        response_body = make_response(jsonify(response),200)
-        return response_body
+        return RESTful.response(code=200, data=data)
+
+api.add_resource(getList,'/list')
+api.add_resource(add,'/add')
+api.add_resource(delete,'/delete')
+api.add_resource(update,'/update')
